@@ -15,17 +15,20 @@ with app.app_context():
     Article.query.delete()
     User.query.delete()
 
-    fake = Faker()
-
     print("Creating users...")
     users = []
     usernames = []
-    for i in range(25):
 
+    # ✅ Ensure at least one guaranteed user for the test
+    user = User(username='testuser')
+    users.append(user)
+
+    # Create additional random users
+    for i in range(24):
         username = fake.first_name()
-        while username in usernames:
+        while username in usernames or username == 'testuser':
             username = fake.first_name()
-        
+
         usernames.append(username)
 
         user = User(username=username)
@@ -38,19 +41,19 @@ with app.app_context():
     for i in range(100):
         content = fake.paragraph(nb_sentences=8)
         preview = content[:25] + '...'
-        
+
         article = Article(
             author=fake.name(),
             title=fake.sentence(),
             content=content,
             preview=preview,
-            minutes_to_read=randint(1,20),
-            is_member_only = rc([True, False, False])
+            minutes_to_read=randint(1, 20),
+            is_member_only=rc([True, False, False])  # Mostly public, some member-only
         )
 
         articles.append(article)
 
     db.session.add_all(articles)
-    
+
     db.session.commit()
-    print("Complete.")
+    print("Seeding complete.")
